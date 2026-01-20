@@ -97,11 +97,6 @@ output/
 └── code_to_test.py          # Test per demo_simple
 ```
 
-## 🎓 Documentazione Accademica
-
-- `RELAZIONE_PROGETTO_FINALE.md`: Report strutturato 
-- `RELAZIONE_SCELTE_PROGETTUALI.md`: Decisioni architetturali e alternative
-
 ## ⚙️ Configurazione
 
 `config.py`:
@@ -123,10 +118,6 @@ Output deterministico, ideale per demo e presentazioni.
 orchestrator = Orchestrator(use_mock=False)
 ```
 Connessione a API LLM reali (OpenAI/GitHub/Ollama).
-
-## 📝 Licenza
-
-MIT License - Progetto accademico per corso di Ingegneria dei Linguaggi di Programmazione.
 
 ## 👤 Autore
 
