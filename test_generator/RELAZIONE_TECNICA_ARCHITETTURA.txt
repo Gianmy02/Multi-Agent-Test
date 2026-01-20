@@ -1,0 +1,84 @@
+RELAZIONE TECNICA: ARCHITETTURA E SCELTE PROGETTUALI
+Progetto: Multi-Agent Test Generator
+Studente: Gianmarco Riviello
+================================================================================
+
+1. INTRODUZIONE
+Il sistema "Multi-Agent Test Generator" e' un framework standalone finalizzato alla 
+generazione automatica di suite di test unitari (pytest) per codice Python. 
+L'obiettivo primario e' il raggiungimento deterministico di una copertura dei 
+rami (branch coverage) superiore all'80%, utilizzando un'architettura basata 
+su agenti AI specializzati e validazione formale della sintassi.
+
+2. ARCHITETTURA DEL SISTEMA
+Il sistema adotta un approccio "Coordinator-Worker" implementato tramite un
+Orchestrator centrale e diverse istanze di Agenti specializzati.
+
+   2.1 Orchestrator (Coordinatore)
+   Gestisce lo stato dell'esecuzione, coordina il flusso di dati tra gli agenti
+   e implementa il loop di ottimizzazione iterativo. Decisore critico per la
+   stagnazione della coverage e la terminazione del processo.
+
+   2.2 Agenti Worker
+   - CodeAnalyzerAgent: Esegue l'analisi statica del codice sorgente. Utilizza 
+     un parser Lark per validare il subset linguistico e il modulo AST di 
+     Python per mappare i rami decisionali.
+   - UnitTestGeneratorAgent: Interfaccia l'LLM per generare la suite di test 
+     iniziale basandosi sulla mappa dei rami fornita dall'analizzatore.
+   - CoverageOptimizerAgent: Interviene se la copertura e' insufficiente. 
+     Analizza i rami non coperti e genera esclusivamente i test mancanti 
+     (Differential Testing).
+   - TestValidatorAgent: Funge da "Quality Gate", valutando non solo la 
+     copertura ma anche la qualita' delle asserzioni e il naming dei test.
+
+3. ANALISI LINGUISTICA E GRAMMATICA LARK
+E' stato definito un subset rigoroso di Python per garantire il controllo 
+totale sui costrutti testabili.
+
+   3.1 Grammatica EBNF (python_subset.lark)
+   La grammatica supporta:
+   - Definizioni di funzione (def)
+   - Strutture condizionali (if/elif/else) anche annidate
+   - Operazioni aritmetiche con precedenza operatore
+   - Comparazioni logiche
+   - Gestione dell'indentazione tramite post-lexing (PythonIndenter)
+
+   3.2 Strategia Fail-Fast
+   Il sistema implementa una validazione sintattica immediata. Se il codice 
+   sorgente viola la grammatica definita, il sistema interrompe l'esecuzione 
+   prima di coinvolgere l'AI, garantendo efficienza e coerenza.
+
+4. LOGICA DI TESTING E METRICHE
+   4.1 Branch Coverage vs Statement Coverage
+   Il sistema predilige la Branch Coverage come metrica di qualita'. A differenza
+   dello Statement Coverage, la Branch Coverage richiede che ogni decisione 
+   logica sia testata in entrambi i suoi esiti (True/False), fornendo garanzie 
+   superiori contro bug logici.
+
+   4.2 Strumentazione
+   Il calcolo della copertura e' delegato a `pytest-cov`, eseguito in un 
+   subprocesso isolato. Questo garantisce che test potenzialmente errati o 
+   maligni non compromettano l'integrita' del generatore.
+
+5. INTEGRAZIONE LLM (LARGE LANGUAGE MODELS)
+   5.1 Mocking 
+   Per finalita' dimostrative, e' stato implementato un `MockLLMClient` che 
+   restituisce risposte pre-calcolate estremamente precise per i casi di test 
+   noti (demo). Cio' garantisce il successo deterministico (100% coverage) 
+   durante le presentazioni senza dipendere dalla latenza o variabilita' delle API.
+
+   5.2 Estensibilita'
+   L'architettura supporta tramite lo Strategy Pattern l'integrazione di 
+   modelli reali (OpenAI, GitHub Models, Ollama) semplicemente cambiando la 
+   configurazione.
+
+6. CONCLUSIONI E SCELTE CHIAVE
+- Lark Parser: Scelto per il rigore formale richiesto negli ambiti di 
+  Ingegneria dei Linguaggi.
+- Isolamento: Ogni esecuzione di test avviene in un ambiente "sandboxed" via 
+  subprocess.
+- Ottimizzazione Differenziale: Il sistema non rigenera mai da zero, ma 
+  costruisce sopra i test esistenti per massimizzare l'efficienza dei token.
+
+================================================================================
+RELAZIONE TECNICA - FINE DOCUMENTO

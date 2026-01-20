@@ -1,0 +1,39 @@
+# Python Subset Grammar - Essential Subset for Test Generation
+# Supports: functions, if/else, basic expressions, comments
+
+start: (_NEWLINE)* function_def+
+
+function_def: "def" NAME "(" params ")" ":" suite
+
+params: [NAME ("," NAME)*]
+
+suite: _NEWLINE _INDENT stmt+ _DEDENT
+
+stmt: simple_stmt [_NEWLINE] | if_stmt | _NEWLINE
+
+simple_stmt: assign | return_stmt
+
+if_stmt: "if" test ":" suite ["else" ":" suite]
+
+assign: NAME "=" test
+return_stmt: "return" test
+
+test: expr (comp_op expr)*
+
+expr: term (("+"|"-") term)*
+term: factor (("*"|"/") factor)*
+factor: NUMBER | NAME | "(" test ")"
+
+!comp_op: "==" | "!=" | "<" | ">" | "<=" | ">="
+
+NAME: /[a-zA-Z_]\w*/
+NUMBER: /\d+(\.\d+)?/
+
+_NEWLINE: ( /\r?\n[\t ]*/ )+
+COMMENT: /#[^\n]*/
+
+%import common.WS_INLINE
+%ignore WS_INLINE
+%ignore COMMENT
+
+%declare _INDENT _DEDENT
