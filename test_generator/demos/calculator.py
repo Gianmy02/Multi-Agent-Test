@@ -1,24 +1,24 @@
 # CALCULATOR
 
 def add(a, b):
-    # Addizione
+    # Addition
     result = a + b
     return result
 
 def subtract(a, b):
-    # Sottrazione
+    # Subtraction
     result = a - b
     return result
 
 def multiply(a, b):
-    # Moltiplicazione
+    # Multiplication
     result = a * b
     return result
 
 def divide(a, b):
-    # Divisione con gestione errore
+    # Division with error handling
     if b == 0:
-        # Codice errore: 0 - 999999
+        # Error code: 0 - 999999
         error = 0 - 999999
         return error
     else:
@@ -26,26 +26,26 @@ def divide(a, b):
         return result
 
 def calculator_menu(operation_code, num1, num2):
-    # Funzione menu principale
+    # Main menu function
     # Input: operation_code (1=add 2=sub 3=mul 4=div)
-    # Calcola direttamente senza chiamare altre funzioni
+    # Calculates directly without calling other functions
     if operation_code == 1:
-        # Addizione
+        # Addition
         result = num1 + num2
         return result
     else:
         if operation_code == 2:
-            # Sottrazione
+            # Subtraction
             result = num1 - num2
             return result
         else:
             if operation_code == 3:
-                # Moltiplicazione
+                # Multiplication
                 result = num1 * num2
                 return result
             else:
                 if operation_code == 4:
-                    # Divisione con controllo
+                    # Division with validation
                     if num2 == 0:
                         error = 0 - 999999
                         return error
@@ -53,6 +53,6 @@ def calculator_menu(operation_code, num1, num2):
                         result = num1 / num2
                         return result
                 else:
-                    # Codice operazione invalido
+                    # Invalid operation code
                     invalid = 0
                     return invalid

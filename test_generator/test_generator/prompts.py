@@ -1,39 +1,16 @@
 """
 System prompts for each specialized agent.
+Includes both system prompts (agent roles) and user prompt builders (dynamic content).
 """
 
-CODE_ANALYZER_SYSTEM_PROMPT = """You are an expert Python code analyzer specializing in branch detection and complexity analysis.
+import json
+from typing import Dict, Any
+from .models import BranchMapDict
 
-Your task is to analyze Python code and identify:
-1. All functions and methods (name, arguments, return type)
-2. All branch points (if/elif/else, loops, try/except, match/case)
-3. Cyclomatic complexity for each function
-4. Total number of branches that need to be covered
 
-CRITICAL RULES:
-1. Output ONLY valid JSON with no additional text
-2. Identify EVERY branch point in the code
-3. Calculate accurate cyclomatic complexity
-4. Include line numbers for each branch
-
-JSON OUTPUT FORMAT:
-{
-  "functions": [
-    {
-      "name": "function_name",
-      "args": [{"name": "param1", "type": "int"}],
-      "return_type": "str",
-      "branches": [
-        {"line": 5, "type": "if", "condition": "x > 0"},
-        {"line": 7, "type": "else", "condition": null}
-      ],
-      "cyclomatic_complexity": 3,
-      "total_branches": 4
-    }
-  ],
-  "total_branches_in_file": 10
-}
-"""
+# ============================================================================
+# SYSTEM PROMPTS (Agent Roles)
+# ============================================================================
 
 UNIT_TEST_GENERATOR_SYSTEM_PROMPT = """You are an expert Python test engineer specializing in pytest test generation.
 
@@ -85,36 +62,100 @@ CRITICAL RULES:
 
 STRATEGY:
 - For uncovered if/else: Create input that triggers the uncovered path
-- For uncovered loops: Test empty, single, multiple iterations
-- For uncovered exceptions: Test conditions that raise them
 - For uncovered edge cases: Use boundary values
 """
 
-TEST_VALIDATOR_SYSTEM_PROMPT = """You are an expert test quality reviewer.
 
-Your task is to assess the quality of generated tests and provide a quality score.
+# ============================================================================
+# USER PROMPT BUILDERS (Dynamic Content)
+# ============================================================================
 
-EVALUATION CRITERIA:
-1. **Meaningful Assertions**: Tests check actual behavior (not just assert True)
-2. **Branch Coverage**: Tests target specific branches
-3. **Independence**: Tests don't depend on each other
-4. **Clarity**: Test names and comments are descriptive
-5. **Edge Cases**: Tests include boundary conditions
-6. **Error Handling**: Tests verify exceptions are raised correctly
-7. **Completeness**: All public functions are tested
-8. **No Duplicates**: No redundant tests
+def build_test_generation_prompt(
+    code: str, 
+    branch_map: BranchMapDict, 
+    module_name: str
+) -> str:
+    """
+    Build prompt for initial test generation.
+    
+    Args:
+        code: Source code to test
+        branch_map: Branch map from CodeAnalyzer
+        module_name: Name of the module being tested
+        
+    Returns:
+        Formatted prompt for LLM
+    """
+    return f"""Generate comprehensive pytest tests for this code:
 
-OUTPUT JSON FORMAT:
-{
-  "quality_score": 8.5,
-  "issues": [
-    "test_addition has weak assertion (assert x > 0)",
-    "Missing edge case test for empty list"
-  ],
-  "suggestions": [
-    "Add parametrize for test_calculate with multiple inputs",
-    "Test negative input cases"
-  ],
-  "passed_quality_gate": true
-}
-"""
+```python
+{code}
+```
+
+Branch Map (branches to cover):
+{json.dumps(branch_map, indent=2)}
+
+Requirements:
+1. Generate tests for EVERY branch in the branch map
+2. Use descriptive test names (test_function_branch_description)
+3. Add comments showing which branch each test covers
+4. Include edge cases and error cases
+5. Import from module: {module_name}
+
+Generate complete, executable pytest code."""
+
+
+def build_coverage_optimization_prompt(
+    code: str,
+    current_tests: str,
+    coverage_result: Dict[str, Any],
+    branch_map: BranchMapDict,
+    module_name: str
+) -> str:
+    """
+    Build prompt for coverage optimization (additional tests).
+    
+    Args:
+        code: Source code
+        current_tests: Existing test suite
+        coverage_result: Coverage report with uncovered branches
+        branch_map: Original branch map
+        module_name: Module name
+        
+    Returns:
+        Formatted prompt for LLM
+    """
+    uncovered = coverage_result.get("uncovered_branches", [])
+    branch_coverage = coverage_result.get("branch_coverage", 0)
+    
+    return f"""The current test suite has {branch_coverage:.1f}% branch coverage.
+
+Original Code:
+```python
+{code}
+```
+
+Current Tests:
+```python
+{current_tests}
+```
+
+Coverage Report:
+- Branch Coverage: {branch_coverage:.1f}%
+- Uncovered Branches: {len(uncovered)}
+
+Branch Map:
+{json.dumps(branch_map, indent=2)}
+
+Uncovered Branches:
+{json.dumps(uncovered, indent=2)}
+
+Generate ADDITIONAL tests to cover the uncovered branches. Focus on:
+1. Branches with lowest coverage
+2. Edge cases that trigger hard-to-reach paths
+3. Error conditions
+4. Boundary values
+
+Import from module: {module_name}
+
+Generate only NEW tests (not duplicates of existing tests)."""

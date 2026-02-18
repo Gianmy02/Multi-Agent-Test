@@ -8,7 +8,7 @@ import os
 
 def main():
     running = True
-    executed_demos = {}  # Track executed demos: {demo_num: result_summary}
+    executed_demos = set()  # Track which demos have been executed
     
     while running:
         print("\n" + "=" * 70)
@@ -18,61 +18,65 @@ def main():
         print("  1. Simple Demo    - Funzione base con branch (add)")
         print("  2. Auth Demo      - Logica condizionale (password/login)")
         print("  3. Calculator     - Menu aritmetico completo (5 funzioni)")
+        print("  4. Complex Demo   - Validazione complessa (14+ branch)")
         print("  0. Esci")
         
         # Show executed demos status
         if executed_demos:
             print("\nDemo già eseguite:")
-            for num, summary in executed_demos.items():
-                demo_name = {1: "Simple", 2: "Auth", 3: "Calculator"}[num]
-                print(f"  [{num}] {demo_name}: {summary}")
+            demo_names = {1: "Simple", 2: "Auth", 3: "Calculator", 4: "Complex"}
+            for num in sorted(executed_demos):
+                print(f"  ✓ [{num}] {demo_names[num]} - Risultati stampati dalla demo")
         
         print("-" * 70)
         
         try:
-            choice = input("\nScegli demo (1-3, 0 per uscire): ").strip()
+            choice = input("\nScegli demo (1-4, 0 per uscire): ").strip()
             
             if choice == "0":
                 print("\nArrivederci!")
                 running = False
-            elif choice in ["1", "2", "3"]:
+            elif choice in ["1", "2", "3", "4"]:
                 demo_num = int(choice)
                 
                 # Check if already executed
                 if demo_num in executed_demos:
-                    demo_name = {1: "Simple", 2: "Auth", 3: "Calculator"}[demo_num]
-                    print(f"\n[✓] Demo {demo_num} ({demo_name}) già eseguita!")
-                    print(f"    Risultato: {executed_demos[demo_num]}")
-                    print(f"    Test salvati in: output/test_*.py")
+                    demo_name = {1: "Simple", 2: "Auth", 3: "Calculator", 4: "Complex"}[demo_num]
+                    print(f"\n[ℹ] Demo {demo_num} ({demo_name}) già eseguita!")
+                    print(f"    I test generati sono salvati in: output/test_*.py")
                     print("\n[Premi Invio per continuare...]")
                     input()
                     continue
                 
                 # Execute demo
+                demo_names = {1: "Simple", 2: "Auth", 3: "Calculator", 4: "Complex"}
+                print(f"\n>> Avvio DEMO {demo_num}: {demo_names[demo_num]}...")
+                print("=" * 70)
+                
                 if choice == "1":
-                    print("\n>> Avvio DEMO 1: Simple...")
-                    print("=" * 70)
                     import demos.demo_simple as demo
                     demo.main()
-                    executed_demos[1] = "100% coverage, 3 test"
                 elif choice == "2":
-                    print("\n>> Avvio DEMO 2: Auth...")
-                    print("=" * 70)
                     import demos.demo_auth as demo
                     demo.main()
-                    executed_demos[2] = "100% coverage, 4 test"
                 elif choice == "3":
-                    print("\n>> Avvio DEMO 3: Calculator...")
-                    print("=" * 70)
                     import demos.demo_calculator as demo
                     demo.main()
-                    executed_demos[3] = "100% coverage, 11 test"
+                elif choice == "4":
+                    import demos.demo_complex as demo
+                    demo.main()
                 
-                print("\n[Demo completata. Premi Invio per continuare...]")
+                # Mark as executed (demo already printed all results above)
+                executed_demos.add(demo_num)
+                
+                print("\n" + "=" * 70)
+                print("[Demo completata. I risultati sono stampati sopra.]")
+                print("Test salvati in: output/test_*.py")
+                print("[Premi Invio per continuare...]")
                 input()
             else:
                 print(f"\n[!] Scelta non valida: '{choice}'")
-                print("Inserisci un numero da 1 a 3, oppure 0 per uscire.")
+                print("Inserisci un numero da 1 a 4, oppure 0 per uscire.")
                 
         except KeyboardInterrupt:
             print("\n\nInterrotto dall'utente. Arrivederci!")
@@ -85,6 +89,5 @@ def main():
             input()
 
 if __name__ == "__main__":
-    # Aggiungi la directory corrente al path per imports
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     main()

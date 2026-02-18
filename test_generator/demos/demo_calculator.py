@@ -11,7 +11,8 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from test_generator.orchestrator import Orchestrator
+from test_generator.orchestrator import LangGraphOrchestrator
+from test_generator import config
 
 def main():
     print("=" * 70)
@@ -40,14 +41,24 @@ def main():
     print(sample_code[:400] + "...\n")
     print("-" * 70)
     
-    orchestrator = Orchestrator(use_mock=True)
+    # Check for Google API key
+    if not config.GOOGLE_API_KEY:
+        print("\n" + "=" * 70)
+        print("WARNING: Google API key not found!")
+        print("=" * 70)
+        print("Set GOOGLE_API_KEY environment variable")
+        print("=" * 70)
+        return
+    
+    # Initialize Orchestrator with LangChain LLM
+    orchestrator = LangGraphOrchestrator(verbose=True)
     
     try:
         print("\n[1] Starting Analysis & Generation...")
         result = orchestrator.generate_tests(
             code=sample_code,
             module_name="calculator",
-            target_coverage=80.0
+            # target_coverage uses default from config.py (80.0)
         )
         
         print("\n" + "=" * 70)
@@ -57,7 +68,6 @@ def main():
         print(f"Tests Generated: {result.get('tests_count', 0)}")
         print(f"Final Branch Coverage:  {result.get('branch_coverage', 0):.1f}%")
         print(f"Final Statement Cov.:   {result.get('total_coverage', 0):.1f}%")
-        print(f"Quality Score:   {result.get('quality_score', 0)}/10")
         
         print("\nLANGUAGE FEATURES DEMONSTRATED:")
         print("  + Multiple function definitions (5)")

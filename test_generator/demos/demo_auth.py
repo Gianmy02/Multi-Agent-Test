@@ -9,7 +9,8 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from test_generator.orchestrator import Orchestrator
+from test_generator.orchestrator import LangGraphOrchestrator
+from test_generator import config
 
 def main():
     print("=" * 70)
@@ -38,21 +39,25 @@ def validate_login(attempts, max_attempts):
     print("\nCODE TO ANALYZE:")
     print(sample_code)
     
-    orchestrator = Orchestrator(use_mock=True)
+    # Check for Google API key
+    if not config.GOOGLE_API_KEY:
+        print("\n" + "=" * 70)
+        print("WARNING: Google API key not found!")
+        print("=" * 70)
+        print("Set GOOGLE_API_KEY environment variable")
+        print("=" * 70)
+        return
+    
+    # Initialize Orchestrator with LangChain LLM
+    orchestrator = LangGraphOrchestrator(verbose=True)
     
     try:
         print("\n[1] Starting Analysis & Generation...")
-        # And we need Mock LLM to return tests that import from auth_functions
-        # I need to update Mock LLM AGAIN to match THIS code.
-        # Or revert to the code Mock LLM expects.
-        # Mock LLM expects calculate_login_score.
-        # Does calculate_login_score allow IFs?
-        # Let's use calculate_login_score BUT add an IF inside it to trigger coverage.
         
         result = orchestrator.generate_tests(
             code=sample_code,
-            module_name="auth_functions",
-            target_coverage=80.0
+            module_name="auth_system",
+            # target_coverage uses default from config.py (80.0)
         )
         
         print("\n" + "=" * 70)
@@ -61,7 +66,6 @@ def validate_login(attempts, max_attempts):
         print(f"Tests Generated: {result.get('tests_count', 0)}")
         print(f"Final Branch Coverage:  {result.get('branch_coverage', 0):.1f}%")
         print(f"Final Statement Cov.:   {result.get('total_coverage', 0):.1f}%")
-        print(f"Quality Score:   {result.get('quality_score', 0)}/10")
         
         print("\nGENERATED TESTS PREVIEW:")
         print("-" * 20)
