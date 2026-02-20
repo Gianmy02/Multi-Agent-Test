@@ -4,7 +4,7 @@ Uses Python's ast module for static analysis.
 """
 
 import ast
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from .models import BranchInfo, FunctionInfo
 
 

@@ -32,13 +32,12 @@ def _cleanup_output_directory():
 # Execute cleanup on import
 _cleanup_output_directory()
 
-from .orchestrator import LangGraphOrchestrator, Orchestrator
+from .orchestrator import LangGraphOrchestrator
 from .agents import CodeAnalyzerAgent, UnitTestGeneratorAgent, CoverageOptimizerAgent
 from .llm_client import BaseLLMClient, LangChainLLMClient
 
 __all__ = [
     "LangGraphOrchestrator",
-    "Orchestrator",  # Backward compatibility alias
     "CodeAnalyzerAgent",
     "UnitTestGeneratorAgent",
     "CoverageOptimizerAgent",

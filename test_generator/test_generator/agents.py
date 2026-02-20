@@ -198,7 +198,10 @@ class UnitTestGeneratorAgent(Agent):
         response = self.client.generate(prompt=prompt, system_prompt=UNIT_TEST_GENERATOR_SYSTEM_PROMPT)
 
         tests = self._extract_code(response)
-
+        try:
+            tree = ast.parse(tests)
+        except SyntaxError as e:
+            return {"error": str(e), "functions": [], "total_branches_in_file": 0}
         test_count = self._count_tests(tests)
         if verbose:
             self.logger.info(f"Generated {test_count} tests")
